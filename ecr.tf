@@ -1,5 +1,5 @@
-resource "aws_ecr_repository" "wam_message_gatling" {
-  name = var.wam_message_gatling_ecr_repo
+resource "aws_ecr_repository" "wamserver" {
+  name = var.wamserver_ecr_repo
 
   image_scanning_configuration {
     scan_on_push = true
@@ -9,3 +9,5 @@ resource "aws_ecr_repository" "wam_message_gatling" {
     encryption_type = "AES256"
   }
 }
+
+
