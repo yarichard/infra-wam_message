@@ -8,6 +8,6 @@ resource "aws_ecr_repository" "wamserver" {
   encryption_configuration {
     encryption_type = "AES256"
   }
+
+  force_delete = true
 }
-
-
