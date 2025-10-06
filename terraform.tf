@@ -8,3 +8,13 @@ terraform {
 
   required_version = ">= 1.2"
 }
+
+// Reference for terraform state outputs
+terraform {
+  backend "s3" {
+    bucket  = "terraform-state-bucket-yrichard"
+    key     = "states/wam_message.tfstate"
+    region  = "eu-west-3"
+    encrypt = true
+  }
+}

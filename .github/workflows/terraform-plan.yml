@@ -9,6 +9,9 @@ on:
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC
+      contents: read
     defaults:
       run:
         working-directory: .
@@ -24,8 +27,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionTerraformRole
           aws-region: eu-west-3
 
       - name: Terraform Init
@@ -40,6 +42,9 @@ jobs:
   terraform-apply:
     needs: terraform-plan
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC
+      contents: read
     defaults:
       run:
         working-directory: .
@@ -55,8 +60,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionTerraformRole
           aws-region: eu-west-3
 
       - name: Terraform Init

@@ -21,3 +21,9 @@ variable "github_repositories" {
   type        = list(string)
   default     = ["wamserver", "wam_message_gatling"]
 }
+
+variable "terraform_repo" {
+  description = "GitHub repository name for Terraform state access."
+  type        = string
+  default     = "infra-wam_message"
+}
