@@ -1,3 +1,13 @@
+// Reference for tfstate bucket policy
+data "terraform_remote_state" "bootstrap-tfstate" {
+  backend = "s3"
+  config = {
+    bucket = "terraform-state-bucket-yrichard"
+    key    = "bootstrap/terraform.tfstate"
+    region = "eu-west-3"
+  }
+}
+
 // OIDC Provider for GitHub
 data "tls_certificate" "github" {
   url = "https://token.actions.githubusercontent.com"
@@ -10,7 +20,7 @@ data "aws_iam_policy_document" "github_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [data.terraform_remote_state.bootstrap-tfstate.outputs.github_oidc_provider_arn]
     }
 
     # Must always match
