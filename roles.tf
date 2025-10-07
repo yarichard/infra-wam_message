@@ -20,7 +20,7 @@ resource "aws_iam_role_policy_attachment" "apprunner_ecr_readonly" {
 
 resource "aws_iam_role" "github_ecr_role" {
   name               = "GitHubActionECRPushRole"
-  assume_role_policy = data.aws_iam_policy_document.github_assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.github_assume_role_for_wam_repos.json
 }
 
 resource "aws_iam_policy" "ecr_policy" {
@@ -99,6 +99,15 @@ data "aws_iam_policy_document" "terraform_state" {
       "arn:aws:iam::${var.aws_account_id}:policy/GithubWamMessageECRTerraformStatePolicy"
     ]
   }
+
+  /*statement {
+    actions = [
+      "apprunner:CreateService"
+    ]
+    resources = [
+      aws_apprunner_service.wamserver.arn
+    ]
+  }*/
 }
 
 resource "aws_iam_policy" "wam_message_ecr_terraform_state_policy" {

@@ -14,7 +14,7 @@ data "tls_certificate" "github" {
 }
 
 // IAM Role for GitHub Actions
-data "aws_iam_policy_document" "github_assume_role" {
+data "aws_iam_policy_document" "github_assume_role_for_wam_repos" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
