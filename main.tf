@@ -2,7 +2,6 @@ provider "aws" {
   region = var.region
 }
 
-
 /*resource "aws_apprunner_service" "wamserver" {
   service_name = "wamserver"
 
@@ -27,4 +26,5 @@ provider "aws" {
   tags = {
     Name = "wamserver"
   }
-}*/
+}
+*/
