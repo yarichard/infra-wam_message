@@ -49,17 +49,17 @@ jobs:
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan-${{ github.event.pull_request.number }}
+          name: tfplan
           path: ${{ env.TF_WORKING_DIR }}/tfplan
           retention-days: 5  # Keep for 5 days to ensure it's available after merge
 
   terraform-apply:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    needs: terraform-plan
     permissions:
       id-token: write   # required for OIDC
       contents: read    # required for checkout
-      pull-requests: read  # required for getting PR information
 
     env:
       TF_WORKING_DIR: .
@@ -79,17 +79,10 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionTerraformRole
           aws-region: eu-west-3
 
-      - name: Get PR Number
-        run: |
-          PR_NUMBER=$(gh pr list --base ${{ github.ref_name }} --head ${{ github.event.before }} --json number --jq '.[0].number')
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Download plan artifact from PR
         uses: actions/download-artifact@v4
         with:
-          name: tfplan-${{ env.PR_NUMBER }}
+          name: tfplan
           path: ${{ env.TF_WORKING_DIR }}
 
       - name: Terraform Init
