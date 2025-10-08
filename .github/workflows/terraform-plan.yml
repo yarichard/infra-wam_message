@@ -7,9 +7,10 @@ on:
     branches: main
 
 jobs:
-  terraform-apply:
+  terraform-plan:
+    # Only run plan on PRs
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
     permissions:
       id-token: write   # required for OIDC
       contents: read
@@ -40,28 +41,65 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform validate
 
-      # On PR → Terraform Plan
       - name: Terraform Plan
-        if: github.event_name == 'pull_request'
         run: terraform plan -out=tfplan -input=false
+        working-directory: ${{ env.TF_WORKING_DIR }}
 
-      # Upload plan artifact (for use in apply)
+      # Save plan for the PR number
       - name: Upload plan artifact
-        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan
+          name: tfplan-${{ github.event.pull_request.number }}
           path: ${{ env.TF_WORKING_DIR }}/tfplan
+          retention-days: 5  # Keep for 5 days to ensure it's available after merge
 
-      # On main branch → Download plan and Apply
-      - name: Download plan artifact
-        if: github.event_name == 'push'
+  terraform-apply:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC
+      contents: read    # required for checkout
+      pull-requests: read  # required for getting PR information
+
+    env:
+      TF_WORKING_DIR: .
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GitHubActionTerraformRole
+          aws-region: eu-west-3
+
+      - name: Get PR Number
+        run: |
+          PR_NUMBER=$(git log -1 --pretty=%B | grep -o '#[0-9]\+' | grep -o '[0-9]\+')
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Error: Could not find PR number in merge commit message"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download plan artifact from PR
         uses: actions/download-artifact@v4
         with:
-          name: tfplan
+          name: tfplan-${{ env.PR_NUMBER }}
           path: ${{ env.TF_WORKING_DIR }}
 
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
       - name: Terraform Apply
-        if: github.event_name == 'push'
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -input=false tfplan
