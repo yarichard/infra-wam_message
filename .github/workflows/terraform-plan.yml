@@ -9,7 +9,7 @@ on:
 jobs:
   terraform-plan:
     # Only run plan on PRs
-    if: github.event_name == 'pull_request'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       id-token: write   # required for OIDC
@@ -54,7 +54,7 @@ jobs:
           retention-days: 5  # Keep for 5 days to ensure it's available after merge
 
   terraform-apply:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: terraform-plan
     permissions:
