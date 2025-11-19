@@ -100,14 +100,16 @@ data "aws_iam_policy_document" "terraform_state" {
     ]
   }
 
-  /*statement {
+  statement {
     actions = [
-      "apprunner:CreateService"
+      "apprunner:CreateService",
+      "apprunner:DescribeService",
+      "apprunner:ListTagsForResource"
     ]
     resources = [
       aws_apprunner_service.wamserver.arn
     ]
-  }*/
+  }
 }
 
 resource "aws_iam_policy" "wam_message_ecr_terraform_state_policy" {
