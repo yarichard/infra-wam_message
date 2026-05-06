@@ -2,3 +2,4 @@
 .terraform/
 **/.terraform/*
 .infracost/
+terraform.tfstate.backup
